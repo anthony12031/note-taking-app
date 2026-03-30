@@ -1,6 +1,6 @@
 # Note-Taking App
 
-**Status:** TASK_REVIEW
+**Status:** COMPLETE
 **Branch:** feature/note-taking-app
 **Date:** 2026-03-29
 
@@ -358,10 +358,19 @@ A0 (Docker) ─┬──→ A1 ──→ B1 ──→ B2
 
 ## Implementation Notes
 
-*To be filled during Phase 4.*
+- **Docker Compose**: 3 services (db, backend, frontend) all working. `docker compose up` brings up the stack.
+- **Migrations**: Auto-run on backend startup via `entrypoint.sh`. Categories seeded automatically.
+- **NoteSerializer**: Uses `to_representation()` to always return nested Category objects in responses while accepting PK integers for writes.
+- **Auth flow**: Register returns JWT tokens + user object. Login uses `username` field (set to email) for SimpleJWT compatibility.
+- **Auto-save**: 1-second debounce in the note editor. `flushSave()` on close ensures no data loss.
+- **Polish**: Auth pages match flat design (no card wrapper). Dashboard removes header bar. Note cards use category-colored backgrounds with hover effects.
 
 ---
 
 ## Review
 
-*To be filled in Phase 5.*
+- ESLint: No warnings or errors
+- TypeScript: Clean compilation (`tsc --noEmit` passes)
+- All API endpoints tested: register, login, categories, notes CRUD
+- Docker build + up verified: all 3 containers healthy
+- Migrations run automatically on startup, categories seeded

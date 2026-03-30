@@ -1,0 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Playfair Display", ui-serif, Georgia, serif;
+  --color-cream: #fff8f0;
+  --color-ink: #3d3428;
+  --color-border-warm: #c4a574;
+  --color-border-soft: #b8956a;
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  .bg-cream {
+    background-color: var(--color-cream);
+  }
+
+  .border-warm {
+    border-color: var(--color-border-warm);
+  }
+
+  .text-cat-random-dot {
+    color: #e85d04;
+  }
+  .bg-cat-random-card {
+    background-color: #ffd6ba;
+  }
+
+  .text-cat-school-dot {
+    color: #d4a017;
+  }
+  .bg-cat-school-card {
+    background-color: #fff3c4;
+  }
+
+  .text-cat-personal-dot {
+    color: #5c7a5c;
+  }
+  .bg-cat-personal-card {
+    background-color: #d4e0d4;
+  }
+
+  .text-cat-drama-dot {
+    color: #c97b84;
+  }
+  .bg-cat-drama-card {
+    background-color: #f0ddd6;
+  }
+}

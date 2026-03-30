@@ -1,6 +1,6 @@
 # Note-Taking App
 
-**Status:** DESIGN_REVIEW
+**Status:** TASK_REVIEW
 **Branch:** feature/note-taking-app
 **Date:** 2026-03-29
 
@@ -98,7 +98,7 @@ flowchart TB
         Serializers --> Models
     end
 
-    subgraph DB["SQLite (dev) / PostgreSQL (prod)"]
+    subgraph DB["PostgreSQL (Docker)"]
         Tables["User, Category, Note"]
     end
 
@@ -246,7 +246,7 @@ sequenceDiagram
 ### Key Decisions
 
 1. **JWT over sessions**: Decoupled frontend/backend; tokens stored in localStorage with refresh rotation.
-2. **SQLite for dev**: Zero config; easy to switch to PostgreSQL via env var.
+2. **PostgreSQL via Docker**: All services containerized with Docker Compose (PostgreSQL, Django, Next.js).
 3. **Pre-seeded categories**: Categories are not user-created; they're global and seeded via migration.
 4. **Auto-save with debounce**: The editor saves automatically 1s after the user stops typing. No explicit "Save" button (matches the design).
 5. **Client-side filtering**: Category filtering on the dashboard happens client-side (small dataset).
@@ -255,7 +255,104 @@ sequenceDiagram
 
 ## Tasks
 
-*To be filled in Phase 3.*
+### Wave A — Project Scaffolding (parallel, no dependencies)
+
+- [ ] **A0: Docker Compose + infrastructure**
+  - `docker-compose.yml` with 3 services: `db` (PostgreSQL 16), `backend` (Django), `frontend` (Next.js)
+  - `backend/Dockerfile` — Python 3.12, install requirements, run with gunicorn/dev server
+  - `frontend/Dockerfile` — Node 20, install deps, run dev server
+  - `.env` file with DB credentials, Django secret key, etc.
+  - `.gitignore` for both Python and Node artifacts, `.env`, certs/keys
+
+- [ ] **A1: Scaffold Django backend**
+  - Create `backend/` with Django project (`config/`), `accounts` app, `notes` app
+  - `requirements.txt` with Django, DRF, simplejwt, django-cors-headers, psycopg2-binary
+  - `config/settings.py` configured: installed apps, REST framework, JWT, CORS, PostgreSQL database from env vars
+  - `config/urls.py` wiring
+
+- [ ] **A2: Scaffold Next.js frontend**
+  - Create `frontend/` with Next.js 14+ App Router, TypeScript, Tailwind CSS
+  - Directory structure: `src/app/`, `src/components/`, `src/lib/`
+  - Tailwind config with the warm color palette from designs
+  - Global styles (cream background, font choices)
+  - `src/lib/types.ts` with TypeScript interfaces (User, Category, Note)
+
+### Wave B — Backend Core (sequential within wave, depends on A1)
+
+- [ ] **B1: Models + Migrations**
+  - `notes/models.py`: Category (name, color), Note (user FK, category FK, title, body, timestamps)
+  - Data migration to seed 4 categories with colors
+  - Run `makemigrations` + `migrate`
+
+- [ ] **B2: Auth API**
+  - `accounts/serializers.py`: RegisterSerializer, LoginSerializer (email + password)
+  - `accounts/views.py`: RegisterView (POST), login via simplejwt TokenObtainPairView
+  - `accounts/urls.py` + wire into `config/urls.py`
+  - Depends on: B1 (user model ready)
+
+- [ ] **B3: Notes + Categories API**
+  - `notes/serializers.py`: CategorySerializer (with note count annotation), NoteSerializer
+  - `notes/views.py`: CategoryViewSet (list only), NoteViewSet (full CRUD, filtered by user)
+  - `notes/urls.py` with DRF router + wire into `config/urls.py`
+  - Depends on: B1
+
+### Wave C — Frontend Pages (parallel within wave, depends on A2)
+
+- [ ] **C1: Auth pages (Login + Signup)**
+  - `src/lib/api.ts`: API client with base URL, JWT token handling (store/retrieve/refresh)
+  - `src/lib/auth.tsx`: AuthContext + AuthProvider (login, signup, logout, user state)
+  - `src/components/AuthForm.tsx`: Shared form component with illustration, heading, fields, button, toggle link
+  - `src/app/login/page.tsx` + `src/app/signup/page.tsx`
+  - `src/app/layout.tsx`: Wrap with AuthProvider
+  - SVG illustrations in `public/illustrations/`
+
+- [ ] **C2: Dashboard page**
+  - `src/components/CategorySidebar.tsx`: "All Categories" header, category list with dots + counts, click to filter
+  - `src/components/NoteCard.tsx`: Date, category label, title, content preview, category-colored background
+  - `src/components/EmptyState.tsx`: Bubble tea illustration + message
+  - `src/app/dashboard/page.tsx`: Protected route, fetch categories + notes, render sidebar + grid
+  - SVG illustration for empty state
+
+- [ ] **C3: Note editor page**
+  - `src/components/CategoryDropdown.tsx`: Dropdown with colored dots for each category
+  - `src/components/NoteEditor.tsx`: Full-page editor — category dropdown, close X, timestamp, title, body, colored background
+  - `src/app/notes/[id]/page.tsx`: Protected route, fetch note, auto-save with debounce on changes
+  - `src/app/notes/new/page.tsx` or create-then-redirect flow from dashboard
+
+### Wave D — Integration + Polish (depends on B2, B3, C1, C2, C3)
+
+- [ ] **D1: End-to-end wiring + route protection**
+  - Ensure API client sends JWT on all requests
+  - Protected route middleware/wrapper redirecting to /login if unauthenticated
+  - Root page (`/`) redirects to `/dashboard` or `/login`
+  - CORS configured between frontend ↔ backend containers
+  - Verify full `docker compose up` brings up all 3 services and DB migrations run on startup
+
+- [ ] **D2: Polish + visual fidelity**
+  - Match category colors precisely to designs
+  - Relative date formatting ("today", "yesterday", "June 12")
+  - Truncated note preview on cards
+  - Responsive grid layout
+  - Hover/focus states on interactive elements
+  - Loading states and error handling
+
+### Dependency Graph
+
+```
+A0 (Docker) ─┬──→ A1 ──→ B1 ──→ B2
+              │               ──→ B3
+              │                         ╲
+              └──→ A2 ──→ C1             ──→ D1 ──→ D2
+                    ──→ C2              ╱
+                    ──→ C3 ────────────╱
+```
+
+**Parallelization plan:**
+- A0 runs first (Docker Compose, Dockerfiles, .env, .gitignore)
+- A1 and A2 run in parallel after A0 (disjoint directories)
+- B1 runs after A1; then B2 and B3 can run in parallel
+- C1, C2, C3 run in parallel after A2 (disjoint files)
+- D1 and D2 run sequentially after all B + C tasks complete
 
 ---
 

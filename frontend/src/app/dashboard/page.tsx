@@ -51,17 +51,20 @@ export default function DashboardPage() {
   const onNewNote = useCallback(async () => {
     setCreating(true);
     try {
-      const defaultCat = categories[0]?.id ?? null;
+      const catId =
+        selectedCategoryId !== "all"
+          ? selectedCategoryId
+          : (categories[0]?.id ?? null);
       const note = await createNote({
         title: "",
         body: "",
-        category: defaultCat,
+        category: catId,
       });
       router.push(`/notes/${note.id}`);
     } finally {
       setCreating(false);
     }
-  }, [categories, router]);
+  }, [categories, selectedCategoryId, router]);
 
   if (authLoading || (!isAuthenticated && !authLoading)) {
     return null;

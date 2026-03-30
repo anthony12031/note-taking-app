@@ -199,6 +199,16 @@ A final pass compared the running UI against the original design mockups and ref
 - Note card styling adjusted for better design fidelity
 - Category sidebar refined with logout placement
 
+#### 6. Bug Fix — New Note Ignores Selected Category
+
+After manual testing, a bug was discovered: clicking "+ New Note" while filtering by a category (e.g., Personal) would always create the note under Drama instead of the selected category.
+
+**Root cause**: The `onNewNote` callback in `dashboard/page.tsx` hardcoded `categories[0]?.id` as the category for new notes. The API returns categories sorted alphabetically by name, so Drama was always index 0. The `selectedCategoryId` state — which tracks the active sidebar filter — was never consulted.
+
+**Fix**: One-line logic change — use `selectedCategoryId` when a specific category is active, fall back to `categories[0]` only when the filter is set to "all". The AI agent identified the root cause from the bug description alone (no reproduction needed) and applied the minimal fix.
+
+This illustrates a common AI-generation gap: the generated code was locally correct (it picked a valid default category) but missed the **user intent** that creating a note while viewing a category should inherit that category. Human testing caught the mismatch.
+
 ### Key Observations
 
 - **Spec as contract**: The detailed spec with API tables, model definitions, and component trees meant both subagents produced compatible code on the first try. The only integration fix needed was the serializer response shape.

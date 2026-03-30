@@ -2,6 +2,8 @@
 
 A warm, friendly note-taking application with category-based organization, built with Django REST Framework and Next.js.
 
+> **Built entirely with an AI-driven workflow** using the [ai-driven-workflow](https://github.com/anthony12031/ai-driven-workflow) Cursor plugin — from design analysis to implementation, testing, and bug fixes. No code was written manually. See the full [AI-Driven Development Workflow](#ai-driven-development-workflow) section below.
+
 ## Tech Stack
 
 | Layer      | Technology                                         |
@@ -182,6 +184,8 @@ With the approved spec as the source of truth, implementation used **parallel AI
 
 Both agents worked simultaneously on disjoint directories (`backend/` and `frontend/`), guided by the shared API contract from the spec.
 
+![Parallel subagents building backend and frontend simultaneously](docs/screenshots/01-parallel-subagents.png)
+
 #### 4. Integration and Verification
 
 After both agents completed, the orchestrating agent:
@@ -190,6 +194,14 @@ After both agents completed, the orchestrating agent:
 - Built Docker images and brought up the full stack
 - Verified end-to-end: database migrations, category seeding, user registration, JWT auth, note CRUD — all tested via `curl` against the running containers
 - Ran ESLint and TypeScript checks (zero errors)
+
+![Agent autonomously detects and fixes a serializer mismatch between backend and frontend](docs/screenshots/02-integration-fix.png)
+
+![Exploring files, building Docker images, and proactively optimizing with .dockerignore](docs/screenshots/03-docker-build-verify.png)
+
+![Docker Compose bringing up all 3 containers and verifying migrations](docs/screenshots/04-docker-compose-up.png)
+
+![API route verification via curl and launching a browser test agent](docs/screenshots/05-api-verification.png)
 
 #### 5. Visual Polish Pass
 
@@ -207,7 +219,15 @@ After manual testing, a bug was discovered: clicking "+ New Note" while filterin
 
 **Fix**: One-line logic change — use `selectedCategoryId` when a specific category is active, fall back to `categories[0]` only when the filter is set to "all". The AI agent identified the root cause from the bug description alone (no reproduction needed) and applied the minimal fix.
 
+![Bug report, root cause analysis, and the fix — all in one pass](docs/screenshots/06-bug-fix.png)
+
 This illustrates a common AI-generation gap: the generated code was locally correct (it picked a valid default category) but missed the **user intent** that creating a note while viewing a category should inherit that category. Human testing caught the mismatch.
+
+#### 7. Automated Test Generation
+
+After all features were implemented and bugs fixed, test suites were generated using a `/test-engineer` command. The agent spawned **two parallel test-engineer subagents** — one for backend Django tests (auth, notes, categories) and one for frontend Jest/React Testing Library tests (components, utilities).
+
+![Test engineer command with parallel backend and frontend subagents](docs/screenshots/08-test-engineers-parallel.png)
 
 ### Key Observations
 

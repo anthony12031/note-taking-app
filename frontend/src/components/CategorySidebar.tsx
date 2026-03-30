@@ -17,9 +17,17 @@ export function CategorySidebar({
 }: Props) {
   return (
     <aside className="flex w-[240px] shrink-0 flex-col border-r border-[#e8d4c4] bg-white/40 px-5 py-6">
-      <h2 className="font-heading mb-5 text-base font-semibold text-[#3d3428]">
+      <button
+        type="button"
+        onClick={() => onSelectCategory("all")}
+        className={`font-heading mb-5 text-left text-base font-semibold transition ${
+          selectedCategoryId === "all"
+            ? "text-[#3d3428]"
+            : "text-stone-400 hover:text-[#3d3428]"
+        }`}
+      >
         All Categories
-      </h2>
+      </button>
       <nav className="flex flex-1 flex-col gap-1">
         {categories.map((c) => (
           <button

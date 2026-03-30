@@ -1,8 +1,10 @@
 "use client";
 
+import { useCallback } from "react";
 import type { Category, Note } from "@/lib/types";
 import { formatLastEdited } from "@/lib/dates";
 import { CategoryDropdown } from "@/components/CategoryDropdown";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 
 type Props = {
   note: Note;
@@ -35,9 +37,16 @@ export function NoteEditor({
       : (categories.find((c) => c.id === categoryId) ?? note.category);
   const bg = cat?.bg_color ?? note.category?.bg_color ?? "#FFF8F0";
 
+  const handleTranscript = useCallback(
+    (text: string) => {
+      onBodyChange(body + (body && !body.endsWith(" ") ? " " : "") + text);
+    },
+    [body, onBodyChange],
+  );
+
   return (
     <div
-      className="flex min-h-screen flex-col"
+      className="relative flex min-h-screen flex-col"
       style={{ backgroundColor: bg }}
     >
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-black/10 px-4 py-3 sm:px-6">
@@ -85,6 +94,7 @@ export function NoteEditor({
           className="min-h-[50vh] w-full flex-1 resize-none border-none bg-transparent text-lg leading-relaxed text-[#3d3428] placeholder:text-stone-400 focus:outline-none focus:ring-0"
         />
       </div>
+      <VoiceRecorder onTranscript={handleTranscript} accentColor={bg} />
     </div>
   );
 }
